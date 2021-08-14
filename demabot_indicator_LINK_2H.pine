@@ -1,18 +1,17 @@
 // This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
-// This code is based on the study you can find here: https://kodify.net/tradingview/indicators/dema/
-// ©zeguela
+// © zeguela
 //@version=4
-strategy(title="ZEGUELA DEMABOT", commission_value=0.070, commission_type=strategy.commission.percent, initial_capital=100, default_qty_value=90, default_qty_type=strategy.percent_of_equity, overlay=true, process_orders_on_close=true)
+strategy(title="[BOT] ALERTATRON-LINK DEMABOT 2H", commission_value=0.063, commission_type=strategy.commission.percent, initial_capital=100, default_qty_value=90, default_qty_type=strategy.percent_of_equity, overlay=true, process_orders_on_close=true)
 
 // Step 1. Script settings
+
 // Input options
 srcData = input(title="Source Data", type=input.source, defval=close)
 
 // Length settings
 len1 = input(title="Length DEMA #1", type=input.integer, defval=8, minval=1)
-len2 = input(title="Length DEMA #2", type=input.integer, defval=21, minval=0)
+len2 = input(title="Length DEMA #2", type=input.integer, defval=20, minval=0)
 len3 = input(title="Length DEMA #3", type=input.integer, defval=0, minval=0)
-
 
 // Step 2. Calculate indicator values
 // Function that calculates the DEMA
@@ -27,7 +26,6 @@ DEMA(series, length) =>
 demaVal1 = DEMA(srcData, len1)
 demaVal2 = DEMA(srcData, len2)
 demaVal3 = DEMA(srcData, len3)
-
 
 // Step 3. Determine indicator signals
 // See if there's a DEMA crossover
@@ -54,13 +52,11 @@ else
         else
             crossunder(close, demaVal1)
 
-
 // Step 4. Output indicator data
 // Plot DEMAs on the chart
 plot(series=demaVal1, color=color.green, linewidth=2, title="DEMA #1")
 plot(series=demaVal2, color=color.red, linewidth=2, title="DEMA #2")
 plot(series=demaVal3, color=color.fuchsia, linewidth=2, title="DEMA #3")
-
 
 // Step 5. Trailing Stop, Stop Loss and Take Profit calculation
 //TRAILING STOP CODE
@@ -138,15 +134,14 @@ resultadoLexit = "(SL = 1% e TP = 0,5%)"
 resultadoS = ((price_entryS - close)/price_entryS) * 100
 resultadoSexit = "(SL = 1% e TP = 0,5)%"
 
-
 // Step 6. Strategy setup
 // Make input options that configure backtest date range
 _startDate = input(title="Start Date", type=input.integer,
      defval=1, minval=1, maxval=31, group="BackTest Period")
 _startMonth = input(title="Start Month", type=input.integer,
-     defval=4, minval=1, maxval=12, group="BackTest Period")
+     defval=1, minval=1, maxval=12, group="BackTest Period")
 _startYear = input(title="Start Year", type=input.integer,
-     defval=2021, minval=1800, maxval=2100, group="BackTest Period")
+     defval=2018, minval=1800, maxval=2100, group="BackTest Period")
 
 _endDate = input(title="End Date", type=input.integer,
      defval=31, minval=1, maxval=31, group="BackTest Period")
@@ -162,16 +157,13 @@ _inDateRange = (time >= timestamp(syminfo.timezone, _startYear,
      (time < timestamp(syminfo.timezone, _endYear, _endMonth, _endDate, 0, 0))
   
 //Alert configuration     
-_alertMessageOpenLong="OpenLong"
-_alertMessageCloseLong="CloseLong"
-_alertmessageExitLong="ExitLong"
-_alertmessageTPLong="TakeProfitLong"
+_alertMessageOpenLong="LINKFTX(LINK-PERP) { cancel(which=all); wait(3s); market(side=buy, amount=90%); wait(10s); limit(position=0, postOnly=false, offset=@" + tostring(longTPEntrada) + "); stopMarket(position=0, offset=@" + tostring(longStopEntrada) + ")}"
+_alertMessageCloseLong="LINKFTX(LINK) { cancel(which=all); continue(if=positionLong); market(position=0);}"
+_alertmessageExitLong="LINKFTX(LINK-PERP) { wait(3s); cancel(which=all);trailingLimit(position=0, minOffset=0.01%, maxOffset=0.03%, reduceOnly=true);}"
 
-_alertMessageOpenShort="OpenShort"
-_alertMessageCloseShort="CloseShort"
-_alertMessageTPShort="TakeProfitShort"
-_alertMessageExitShort="ExitShort"
-
+_alertMessageOpenShort="LINKFTX(LINK-PERP) {cancel(which=all); wait(3s); market(side=sell, amount=90%); wait(10s); limit(position=0, postOnly=false, offset=@" + tostring(shortTPEntrada) + "); stopMarket(position=0, offset=@" + tostring(shortStopEntrada) + ")}"
+_alertMessageCloseShort="LINKFTX(LINK-PERP) { cancel(which=all); continue(if=positionShort); market(position=0);}"
+_alertMessageExitShort="LINKFTX(LINK-PERP) { wait(3s); cancel(which=all);trailingLimit(position=0, minOffset=0.01%, maxOffset=0.03%, reduceOnly=true);}"
 
 // Step 7. Strategy Execution
 if (_inDateRange)
@@ -188,10 +180,9 @@ if (_inDateRange)
     if strategy.position_size < 0
         strategy.exit("TP/SL", "SHORT", stop=shortStop, limit=shortTake1Price, comment ="EXIT SHORT", alert_message=_alertMessageExitShort)
 
-
 // Step 8. Chart look and feel
 //Look & Feel - Plot stop loss and take profit areas
-p1=plot(strategy.position_avg_price, color=color.blue, style=plot.style_linebr, linewidth=1, title="Entry Price")
+p1=plot(strategy.position_avg_price, color=color.blue, style=plot.style_linebr, linewidth=1, title="Preço de entrada")
 p2=plot(series=strategy.position_size > 0 ? longStop : na, color=color.red, style=plot.style_linebr, linewidth=1, title="Long Stop")
 p3=plot(series=strategy.position_size > 0 ? longTake1Price : na, color=color.green, style=plot.style_linebr, linewidth=1, title="Long TP")
 p4=plot(series=strategy.position_size < 0 ? shortStop : na, color=color.red, style=plot.style_linebr, linewidth=1, title="Short Stop")
@@ -206,7 +197,7 @@ stopLossOnLong = "Stop Loss = " + tostring(longStop)
 stopLossOnShort = "Stop Loss = " + tostring(shortStop)
 takeprofitOnLong = "Take Profit = " + tostring(longTake1Price)
 takeprofitOnShort = "Take Profit = " + tostring(shortTake1Price)
-precoentrada = "Entry Price = " + tostring(strategy.position_avg_price)
+precoentrada = "Entrada = " + tostring(strategy.position_avg_price)
 
 var label FinalLabelpriceL = na
 var label FinalLabelpriceS = na
@@ -247,20 +238,3 @@ if strategy.position_size < 0
 // Exit open market position when date range ends
 if (not _inDateRange)
     strategy.close_all()
-
-//Plot the box with position and P&L
-posColor = color.new(color.green, 75)
-negColor = color.new(color.red, 75)
-dftColor = color.new(color.blue, 75)
-posProfit= (strategy.position_size > 0) ? (close * 100 / strategy.position_avg_price - 100) : strategy.position_size < 0 ? (strategy.position_avg_price * 100 / close - 100) : 0.0
-posDir   = (strategy.position_size  > 0) ? "long" : strategy.position_size < 0 ? "short" : "flat"
-posCol   = (posProfit > 0) ? posColor : (posProfit < 0) ? negColor : dftColor
-
-var label lb = na
-label.delete(lb)
-lb := label.new(bar_index, max(high, highest(4)[1]), textcolor=color.white,
-   color=posCol,
-   text="Pos: "+ posDir +
-      "\nPnL: "+tostring(posProfit, "#.##")+"%" +
-      "\nAvg Price: "+tostring(strategy.position_avg_price, "#.####") +
-      "\nClose: "+tostring(close, "#.####"))

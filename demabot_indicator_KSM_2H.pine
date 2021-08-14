@@ -1,7 +1,7 @@
 // This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © zeguela
 //@version=4
-strategy(title="[BOT] KSM 2H ZEGUELA DEMABOT", commission_value=0.063, commission_type=strategy.commission.percent, initial_capital=100, default_qty_value=90, default_qty_type=strategy.percent_of_equity, overlay=true, process_orders_on_close=true)
+strategy(title="[BOT] ALERTATRON-KSM DEMABOT 2H", commission_value=0.063, commission_type=strategy.commission.percent, initial_capital=100, default_qty_value=90, default_qty_type=strategy.percent_of_equity, overlay=true, process_orders_on_close=true)
 
 // Step 1. Script settings
 
